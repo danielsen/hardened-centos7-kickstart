@@ -210,125 +210,391 @@ EOF
 ########################################
 # STIG Audit Configuration
 ########################################
-cat <<EOF > /etc/audit/rules.d/zzz-supplemental.rules
-# augenrules is a script that merges all component audit rules files;
-# The last processed -D directive without an option, if present, is
-# always emitted as the first line in the resultant file. Those with an
-# option are replicated in place.  The last processed -b directive, if
-# present, is always emitted as the second line in the resultant file.
-# The last processed -f directive, if present, is always emitted as the
-# third line in the resultant file.  The last processed -e directive,
-# if present, is always emitted as the last line in the resultant file.
-
-# Remove any existing rules
+cat <<EOF > /etc/audit/rules.d/audit.rules
+## First rule - delete all
 -D
 
-# Increase kernel buffer size
--b 16384
+## Increase the buffers to survive stress events.
+## Make this bigger for busy systems
+-b 8192
 
-# Failure of auditd causes a kernel panic
--f 2
+## Set failure mode to syslog
+-f 1
 
-# Make the auditd Configuration Immutable
--e 2
+# BEGIN MANAGED BY ANSIBLE-HARDENING
+## Rules for auditd deployed by ansible-hardening
+# Do not edit any of these rules directly. The contents of this file are
+# controlled by Ansible variables and each variable is explained in detail
+# within the role documentation:
+#
+#    http://docs.openstack.org/developer/ansible-hardening/
+#
 
-###########################
-## DISA STIG Audit Rules ##
-###########################
+# Delete all existing auditd rules prior to loading this ruleset.
+-D
 
-# Watch syslog configuration
--w /etc/rsyslog.conf
--w /etc/rsyslog.d/
+# Increase the buffers to survive stress events.
+-b 320
 
-# Watch PAM and authentication configuration
--w /etc/pam.d/
--w /etc/nsswitch.conf
+# Set the auditd failure flag.
+-f 1
 
-# Watch system log files
--w /var/log/messages
--w /var/log/audit/audit.log
--w /var/log/audit/audit[1-4].log
+# V-72097
+-a always,exit -F arch=b32 -S chown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S chown -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch audit configuration files
--w /etc/audit/auditd.conf -p wa
--w /etc/audit/audit.rules -p wa
+# V-72099
+-a always,exit -F arch=b32 -S fchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch login configuration
--w /etc/login.defs
--w /etc/securetty
--w /etc/resolv.conf
+# V-72099
+-a always,exit -F arch=b32 -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch cron and at
--w /etc/at.allow
--w /etc/at.deny
--w /var/spool/at/
--w /etc/crontab
--w /etc/anacrontab
--w /etc/cron.allow
--w /etc/cron.deny
--w /etc/cron.d/
--w /etc/cron.hourly/
--w /etc/cron.weekly/
--w /etc/cron.monthly/
+# V-72103
+-a always,exit -F arch=b32 -S fchownat -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchownat -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch shell configuration
--w /etc/profile.d/
--w /etc/profile
--w /etc/shells
--w /etc/bashrc
--w /etc/csh.cshrc
--w /etc/csh.login
+# V-72105
+-a always,exit -F arch=b32 -S chmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S chmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch kernel configuration
--w /etc/sysctl.conf
--w /etc/modprobe.conf
+# V-72107
+-a always,exit -F arch=b32 -S fchmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchmod -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch linked libraries
--w /etc/ld.so.conf -p wa
--w /etc/ld.so.conf.d/ -p wa
+# V-72109
+-a always,exit -F arch=b32 -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch init configuration
--w /etc/rc.d/init.d/
--w /etc/sysconfig/
--w /etc/inittab -p wa
--w /etc/rc.local
--w /usr/lib/systemd/
--w /etc/systemd/
+# V-72111
+-a always,exit -F arch=b32 -S setxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+#-a always,exit -F arch=b64 -S setxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod # in V-75717 now 
 
-# Watch filesystem and NFS exports
--w /etc/fstab
--w /etc/exports
+# V-72113
+-a always,exit -F arch=b32 -S fsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+#-a always,exit -F arch=b64 -S fsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod # V-75721
 
-# Watch xinetd configuration
--w /etc/xinetd.conf
--w /etc/xinetd.d/
+# V-72115
+-a always,exit -F arch=b32 -S lsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+#-a always,exit -F arch=b64 -S lsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod V-75719
 
-# Watch Grub2 configuration
--w /etc/grub2.cfg
--w /etc/grub.d/
+# V-72117
+-a always,exit -F arch=b32 -S removexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+#-a always,exit -F arch=b64 -S removexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod # V-75723
 
-# Watch TCP_WRAPPERS configuration
--w /etc/hosts.allow
--w /etc/hosts.deny
+# V-72119
+-a always,exit -F arch=b32 -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Watch sshd configuration
--w /etc/ssh/sshd_config
+# V-72121
+-a always,exit -F arch=b32 -S lremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
 
-# Audit system events
--a always,exit -F arch=b32 -S acct -S reboot -S sched_setparam -S sched_setscheduler -S setrlimit -S swapon 
--a always,exit -F arch=b64 -S acct -S reboot -S sched_setparam -S sched_setscheduler -S setrlimit -S swapon 
+# V-72123
+-a always,exit -F arch=b32 -S creat -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
 
-# Audit any link creation
--a always,exit -F arch=b32 -S link -S symlink
--a always,exit -F arch=b64 -S link -S symlink
+# V-72125
+-a always,exit -F arch=b32 -S open -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S open -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
 
-##############################
-## NIST 800-53 Requirements ##
-##############################
+# V-72127
+-a always,exit -F arch=b32 -S openat -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S openat -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
 
-#2.6.2.4.5 Ensure auditd Collects Logon and Logout Events
+# V-72129
+-a always,exit -F arch=b32 -S open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+
+# V-72131
+-a always,exit -F arch=b32 -S truncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S truncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+
+# V-72133
+-a always,exit -F arch=b32 -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+
+# V-72135
+-a always,exit -F path=/usr/sbin/semanage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72137
+-a always,exit -F path=/usr/sbin/setsebool -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72139
+-a always,exit -F path=/usr/bin/chcon -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72143
+-w /var/log/tallylog -p wa -k logins
+
+# V-72145
+-w /var/run/faillock/ -p wa -k logins
+
+# V-72147
+-w /var/log/lastlog -p wa -k logins
+
+# V-72149
+-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-72151
+-a always,exit -F path=/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-72153
+-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-72155
+-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-72157
+-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-72159
+-a always,exit -F path=/bin/su -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72161
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72163
+-w /etc/sudoers -p wa -k privileged-actions
+-w /etc/sudoers.d -p wa -k privileged-actions
+
+# V-72165
+-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72167
+-a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72169
+-a always,exit -F path=/bin/sudoedit -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72171
+-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k privileged-mount
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k privileged-mount
+
+# V-72173
+-a always,exit -F path=/bin/umount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-mount
+
+# V-72175
+-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-postfix
+
+# V-72177
+-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-postfix
+
+# V-72183
+-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-cron
+
+# V-72185
+-a always,exit -F path=/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-pam
+
+# V-72187
+-a always,exit -F arch=b32 -S init_module -k module-change
+-a always,exit -F arch=b64 -S init_module -k module-change
+
+# V-72189
+-a always,exit -F arch=b32 -S delete_module -k module-change
+-a always,exit -F arch=b64 -S delete_module -k module-change
+
+# V-72191
+-w /sbin/insmod -p x -F auid!=4294967295 -k module-change
+
+# V-72195
+-w /sbin/modprobe -p x -F auid!=4294967295 -k module-change
+
+# V-72197
+-w /etc/passwd -p wa -k identity
+
+# V-72199
+-a always,exit -F arch=b32 -S rename -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S rename -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+
+# V-72201
+-a always,exit -F arch=b32 -S renameat -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S renameat -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+
+# V-72203
+-a always,exit -F arch=b32 -S rmdir -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S rmdir -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+
+# V-72205
+-a always,exit -F arch=b32 -S unlink -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlink -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+
+# V-72207
+-a always,exit -F arch=b32 -S unlinkat -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlinkat -F perm=x -F auid>=1000 -F auid!=4294967295 -k delete
+
+#testing - ramy
+-w /etc/group -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-a always,exit -F path=/usr/sbin/restorecon -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+-w /sbin/rmmod -p x -F auid!=4294967295 -k module-change
+
+#nessus fix text is missing the security directory for these
+-w /etc/security/opasswd -p wa -k identity
+-w /etc/security/group -p wa -k identity
+
+# ian Fixes
+-w /etc/opasswd -p wa -k identity
+
+# V-78999
+-a always,exit -F arch=b32 -S create_module -k module-change
+-a always,exit -F arch=b64 -S create_module -k module-change
+
+# V-79001
+-a always,exit -F arch=b32 -S finit_module -k module-change
+-a always,exit -F arch=b64 -S finit_module -k module-change
+
+# V-72141
+-a always,exit -F path=/usr/sbin/setfiles -F auid>=1000 -F auid!=4294967295 -k privileged-priv_change
+
+# V-72179
+-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-ssh
+
+# V-72181
+-a always,exit -F path=/usr/libexec/pt_chown -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged_terminal
+
+# V-75689
+-a always,exit -F arch=b64 -S execve -C uid!=euid -F key=execpriv 
+-a always,exit -F arch=b64 -S execve -C gid!=egid -F key=execpriv 
+
+# V-75693
+-a always,exit -F path=/usr/bin/chfn -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+
+# V-75695
+-a always,exit -F path=/bin/mount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-mount
+
+# V-75699
+-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-ssh
+
+# V-75709
+-w /sbin/insmod -p x -k modules
+
+# V-75711
+-w /sbin/rmmod -p x -k modules
+
+# V-75713
+-w /sbin/modprobe -p x -k modules
+
+# V-75715
+-w /bin/kmod -p x -k modules
+
+# V-75717
+-a always,exit -F arch=b64 -S setxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S setxattr -F auid=0 -k perm_mod 
+
+# V-75719
+-a always,exit -F arch=b64 -S lsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S lsetxattr -F auid=0 -k perm_mod 
+
+# V-75721
+-a always,exit -F arch=b64 -S fsetxattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fsetxattr -F auid=0 -k perm_mod
+
+# V-75723
+-a always,exit -F arch=b64 -S removexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S removexattr -F auid=0 -k perm_mod
+
+# V-75725
+#-a always,exit -F arch=b64 -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S fremovexattr -F auid=0 -k perm_mod 
+
+# V-75729
+-a always,exit -F arch=b64 -S chown -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75731
+-a always,exit -F arch=b64 -S fchown -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75733
+-a always,exit -F arch=b64 -S fchownat -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75735
+-a always,exit -F arch=b64 -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75737
+-a always,exit -F arch=b64 -S chmod -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75739
+-a always,exit -F arch=b64 -S fchmod -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75741
+-a always,exit -F arch=b64 -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75743
+-a always,exit -F arch=b64 -S open -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S open -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75745
+-a always,exit -F arch=b64 -S truncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S truncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75747
+-a always,exit -F arch=b64 -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75749
+-a always,exit -F arch=b64 -S creat -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S creat -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75751
+-a always,exit -F arch=b64 -S openat -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S openat -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75753
+-a always,exit -F arch=b64 -S open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k perm_access
+-a always,exit -F arch=b64 -S open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k perm_access
+
+# V-75755
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=4294967295 -k priv_cmd
+
+# V-75757
+-a always,exit -F path=/usr/bin/sudoedit -F perm=x -F auid>=1000 -F auid!=4294967295 -k priv_cmd
+
+# V-75759
+-a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=4294967295 -k priv_cmd
+
+# V-75761
+-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=4294967295 -k priv_cmd
+
+# V-75765
+-a always,exit -F path=/sbin/apparmor_parser -F perm=x -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75767
+-a always,exit -F path=/usr/bin/setfacl -F perm=x -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75769
+-a always,exit -F path=/usr/bin/chacl -F perm=x -F auid>=1000 -F auid!=4294967295 -k perm_chng
+
+# V-75773
 -w /var/log/faillog -p wa -k logins
 
+# V-75779
+-a always,exit -F path=/sbin/unix_update -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-unix-update
+
+# V-75781
+-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-gpasswd
+
+# V-75783
+-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-chage
+
+# V-75785
+-a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-usermod
+
+# V-75787
+-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-crontab
+
+# V-75789
+-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-pam_timestamp_check
+
+# V-75791
+-a always,exit -F arch=b64 -S init_module -F auid>=1000 -F auid!=4294967295 -k module_chng
+
+# V-75793
+-a always,exit -F arch=b64 -S finit_module -F auid>=1000 -F auid!=4294967295 -k module_chng
+
+# V-75795
+-a always,exit -F arch=b64 -S delete_module -F auid>=1000 -F auid!=4294967295 -k module_chng
+# END MANAGED BY ANSIBLE-HARDENING
 EOF
 # Find and monitor additional privileged commands
 for PROG in `find / -xdev -type f -perm -4000 -o -type f -perm -2000 2>/dev/null`; do
@@ -380,7 +646,7 @@ dispatcher = /sbin/audispd
 name_format = NONE
 ##name = mydomain
 max_log_file_action = ROTATE
-space_left = 100
+space_left = 500
 verify_email = yes
 action_mail_acct = root
 admin_space_left = 75
@@ -437,7 +703,7 @@ EOF
 ########################################
 cat <<EOF > /etc/profile.d/autologout.sh
 #!/bin/sh
-TMOUT=900
+TMOUT=600
 export TMOUT
 readonly TMOUT
 EOF
@@ -536,6 +802,8 @@ echo "IgnoreUserKnownHosts yes" >> /etc/ssh/sshd_config
 echo "StrictModes yes" >> /etc/ssh/sshd_config
 echo "UsePrivilegeSeparation yes" >> /etc/ssh/sshd_config
 echo "Compression delayed" >> /etc/ssh/sshd_config
+echo "HostbasedAuthentication no" >> /etc/ssh/sshd_config
+echo "IgnoreRhosts yes" >> /etc/ssh/sshd_config
 if [ $(grep -c sshusers /etc/group) -eq 0 ]; then
 	/usr/sbin/groupadd sshusers &> /dev/null
 fi
@@ -838,6 +1106,8 @@ echo "kernel.randomize_va_space = 2" >> /etc/sysctl.conf
 # AC-4, 366, SRG-OS-000480-GPOS-00227
 ########################################
 echo "net.ipv6.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
 
 #######################################
 # Kernel - Disable Redirects
@@ -872,3 +1142,25 @@ timedatectl set-ntp false
 systemctl disable kdump.service 
 systemctl mask kdump.service
 
+########################################
+# Enable tmp mount service
+########################################
+systemctl enable tmp.mount
+
+#######################################
+# RHEL-07-030201, 
+#######################################
+yum install -y audispd-plugins
+sed -i 's/active = no/active = yes/' /etc/audisp/plugins.d/au-remote.conf
+
+######################################
+# RHEL-07-030320
+#####################################
+sed -i 's/disk_full_action = warn_once/disk_full_action = single/' /etc/audisp/audisp-remote.conf
+sed -i 's/network_failure_action = stop/network_failure_action = single/' /etc/audisp/audisp-remote.conf
+
+
+##################
+# RHEL-07-020270 
+#################
+userdel games 
