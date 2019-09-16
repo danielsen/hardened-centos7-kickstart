@@ -7,6 +7,11 @@
 # Author: Frank Caviggia (fcaviggia@gmail.com)
 # Copyright: Frank Caviggia, (C) 2018
 # License: Apache License, Version 2.0
+#
+# Modifications:
+#
+# danielsen - 9/16/2019
+# - Changed default DNS entries to BackplaneDNS.org
 
 import os,sys,re,crypt,random
 try:
@@ -412,8 +417,8 @@ class Display_Menu:
 		self.network_ip = "192.168.0.2"
 		self.network_netmask = "255.255.255.0"
 		self.network_gateway = "192.168.0.1"
-		self.network_dns1 = "8.8.8.8"
-		self.network_dns2 = "8.8.4.4"
+		self.network_dns1 = "172.98.193.42"
+		self.network_dns2 = "162.248.241.94"
 
                 self.vbox.add(self.button_bar)
                 self.window.add(self.vbox)
