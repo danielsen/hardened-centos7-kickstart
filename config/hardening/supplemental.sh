@@ -7,11 +7,16 @@
 # License: Apache License, Version 2.0
 # Copyright: Frank Caviggia, 2018
 # Author: Frank Caviggia <fcaviggi (at) gmail.com>
+#
+# Modifications:
+#
+# danielsen - 9/16/2019
+# - Changes legal banner
 
 ########################################
 # LEGAL BANNER CONFIGURATION
 ########################################
-BANNER_MESSAGE_TEXT='You are accessing a U.S. Government (USG) Information System (IS) that is \nprovided for USG-authorized use only. By using this IS (which includes any \ndevice attached to this IS), you consent to the following conditions:\n\n-The USG routinely intercepts and monitors communications on this IS for \npurposes including, but not limited to, penetration testing, COMSEC monitoring, \nnetwork operations and defense, personnel misconduct (PM), law enforcement \n(LE), and counterintelligence (CI) investigations.\n\n-At any time, the USG may inspect and seize data stored on this IS.\n\n-Communications using, or data stored on, this IS are not private, are subject \nto routine monitoring, interception, and search, and may be disclosed or used \nfor any USG-authorized purpose.\n\n-This IS includes security measures (e.g., authentication and access controls) \nto protect USG interests -- not for your personal benefit or privacy.\n\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE \nor CI investigative searching or monitoring of the content of privileged \ncommunications, or work product, related to personal representation or services \nby attorneys, psychotherapists, or clergy, and their assistants. Such \ncommunications and work product are private and confidential. See User \nAgreement for details.\n\n'
+BANNER_MESSAGE_TEXT='This system is for the use of authorized users only.\nIndividuals using this computer system without \nauthority, or in excess of their authority, are subject \nto having all of their activities on this system \nmonitored and recorded by system personnel. In the course of monitoring \nindividuals improperly using this \nsystem, or in the course of system maintenance, the \activities of authorized users may also be monitored. \nAnyone using this system expressly consents to such \nmonitoring and is advised that is such monitoring \nreveals possible evidence of criminal activity, system \npersonnel may provide the evidence of such monitoring \nto law enforcement officials.\n\n'
 echo -e "${BANNER_MESSAGE_TEXT}" > /etc/issue
 echo -e "${BANNER_MESSAGE_TEXT}" > /etc/issue.net
 
