@@ -12,11 +12,12 @@
 #
 # danielsen - 9/16/2019
 # - Changes legal banner
+# - Corrects typos and layout of legal banner
 
 ########################################
 # LEGAL BANNER CONFIGURATION
 ########################################
-BANNER_MESSAGE_TEXT='This system is for the use of authorized users only.\nIndividuals using this computer system without \nauthority, or in excess of their authority, are subject \nto having all of their activities on this system \nmonitored and recorded by system personnel. In the course of monitoring \nindividuals improperly using this \nsystem, or in the course of system maintenance, the \activities of authorized users may also be monitored. \nAnyone using this system expressly consents to such \nmonitoring and is advised that is such monitoring \nreveals possible evidence of criminal activity, system \npersonnel may provide the evidence of such monitoring \nto law enforcement officials.\n\n'
+BANNER_MESSAGE_TEXT='This system is for the use of authorized users only.\nIndividuals using this computer system without \nauthority, or in excess of their authority, are subject \nto having all of their activities on this system \nmonitored and recorded by system personnel. In the course \nof monitoring individuals improperly using this system, \nor in the course of system maintenance, the activities \nof authorized users may also be monitored. \nAnyone using this system expressly consents to such \nmonitoring and is advised that if such monitoring \nreveals possible evidence of criminal activity, system \npersonnel may provide the evidence of such monitoring \nto law enforcement officials.\n\n'
 echo -e "${BANNER_MESSAGE_TEXT}" > /etc/issue
 echo -e "${BANNER_MESSAGE_TEXT}" > /etc/issue.net
 
